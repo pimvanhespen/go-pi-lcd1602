@@ -1,5 +1,6 @@
-# Golang  LCD1602 (LCD16x2) for RaspberryPi
+# Golang  LCD1602 (LCD16x2) for RaspberryPi [![GoDoc](https://godoc.org/github.com/pimvanhespen/go-pi-lcd1602?status.svg)](https://godoc.org/github.com/pimvanhespen/lcd1602)
 Use LCD screens in your Go RPi applications!
+
 
 ## Fast
 The timing in this library is optimized to run as smoot as possible.
@@ -10,7 +11,6 @@ You can use **Animations** (see animations.go, and examples/slide.go) to slide t
 
 This library is built using [Stian Eikelands go-rpio library](https://github.com/stianeikeland/go-rpio).
 
-**Documentation:** [![GoDoc](https://godoc.org/github.com/pimvanhespen/go-pi-lcd1602?status.svg)](https://godoc.org/github.com/pimvanhespen/lcd1602)
 
 
 

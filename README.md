@@ -26,7 +26,7 @@ Also checkout the [examples](https://github.com/pimvanhespen/go-pi-lcd1602/tree/
 ### Short example
 ```go
 func main() {
-	//Outout in your display in 4 lines!
+	//Write text to your LCD in 4 lines of code
     lcd := lcd1602.New(
 		7,                     //rs
 		8,                     //enable

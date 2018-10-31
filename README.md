@@ -1,10 +1,12 @@
 # Golang  LCD1602 (LCD16x2) for RaspberryPi
 Use LCD screens in your Go RPi applications!
 
+## Fast
 The timing in this library is optimized to run as smoot as possible.
 (It takes **~40 microseconds** to write one character to the LCD, opposed to many online examples taking **5-10 milliseconds**).
 
-Now you can use SlideIn an Out **Animations** (see animations.go, and examples/slide.go)
+## Fun
+You can use **Animations** (see animations.go, and examples/slide.go) to slide text into and out of the LCD.
 
 This library is built using [Stian Eikelands go-rpio library](https://github.com/stianeikeland/go-rpio).
 

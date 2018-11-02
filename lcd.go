@@ -18,8 +18,6 @@ const (
 )
 
 var (
-	VERBOSITY = 0
-
 	ENABLE_DELAY = 1 * time.Microsecond
 
 	SLIDE_SPEED_DELAY = 10 * time.Millisecond //lower == faster
@@ -41,10 +39,12 @@ func init() {
 	}
 }
 
+//Close function should be called when exiting your program
 func Close() {
 	rpio.Close()
 }
 
+//New create a new LCD output
 func New(rs, e int, data []int, linewidth int) *LCD {
 
 	datalength := len(data)
@@ -67,7 +67,7 @@ func New(rs, e int, data []int, linewidth int) *LCD {
 	return lcd
 }
 
-//Init initiates the LCD
+//Initialize initiates the LCD
 func (l *LCD) Initialize() {
 
 	l.initPins()
@@ -119,6 +119,7 @@ func (l *LCD) Clear() {
 	l.Write(0x01, RS_INSTRUCTION)
 }
 
+//WriteLines writes the lines to the available lines on your LCD
 func (l *LCD) WriteLines(lines ...string) {
 	if len(lines) > 0 {
 		l.WriteLine(lines[0], LINE_1)

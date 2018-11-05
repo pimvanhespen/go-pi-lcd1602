@@ -6,13 +6,15 @@ Use LCD screens in your Go RPi applications!
 The timing in this library is optimized to run as smoot as possible.
 (It takes **~40 microseconds** to write one character to the LCD, opposed to many online examples taking **5-10 milliseconds**).
 
-## Fun
-You can use **Animations** (see animations.go, and examples/slide.go) to slide text into and out of the LCD.
+## Animated
+You can use **Animations** (see animations, and examples/animations.go) to slide text into and out of the LCD.
+You can also create your own animations by implementing the `Animation` interface.
 
-This library is built using [Stian Eikelands go-rpio library](https://github.com/stianeikeland/go-rpio).
-
-
-
+## Changelog
+### 5 / 11 / 2018
+- Fixed boot bug: The LCD used to randomly show garbled data. It's fixed
+- Better implementation of animations. Animations are now locked to a single line, allowing for animating both lines concurrently
+- Added an example for the new animations
 
 
 ## Usage
@@ -38,6 +40,5 @@ func main() {
 	lcd1602.Close()
 }
 ```
-
-
-
+## Special thanks
+This library is built using [Stian Eikelands go-rpio library](https://github.com/stianeikeland/go-rpio).

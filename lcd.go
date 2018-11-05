@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	rpio "github.com/stianeikeland/go-rpio"
@@ -18,33 +19,42 @@ const (
 )
 
 var (
+	VERBOSITY = 0
+
 	ENABLE_DELAY = 1 * time.Microsecond
 
 	SLIDE_SPEED_DELAY = 10 * time.Millisecond //lower == faster
 
-	EXECUTION_TIME_DEFAULT     = 38 * time.Microsecond
+	EXECUTION_TIME_DEFAULT     = 40 * time.Microsecond
 	EXECUTION_TIME_RETURN_HOME = 1520 * time.Microsecond
 )
 
+//global used to ensure the rpio library is nitialized befure using it.
+var rpioPrepared = false
+
 type LCD struct {
-	RS, E     rpio.Pin
-	DataPins  []rpio.Pin
-	LineWidth int
+	RS, E        rpio.Pin
+	DataPins     []rpio.Pin
+	LineWidth    int
+	writelock    sync.Mutex
+	line1, line2 sync.Mutex
 }
 
-func init() {
+//function should be called before executing any other code!
+func Open() {
 	if err := rpio.Open(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	rpioPrepared = true
 }
 
-//Close function should be called when exiting your program
 func Close() {
-	rpio.Close()
+	if rpioPrepared {
+		rpio.Close()
+	}
 }
 
-//New create a new LCD output
 func New(rs, e int, data []int, linewidth int) *LCD {
 
 	datalength := len(data)
@@ -59,25 +69,28 @@ func New(rs, e int, data []int, linewidth int) *LCD {
 	}
 
 	lcd := &LCD{
-		rpio.Pin(rs),
-		rpio.Pin(e),
-		datapins,
-		linewidth,
+		RS:        rpio.Pin(rs),
+		E:         rpio.Pin(e),
+		DataPins:  datapins,
+		LineWidth: linewidth,
 	}
+	lcd.initPins()
 	return lcd
 }
 
-//Initialize initiates the LCD
+//Init initiates the LCD
 func (l *LCD) Initialize() {
-
-	l.initPins()
 	l.Reset()
+
 	l.EntryModeSet(true, false)
 	l.DisplayMode(true, false, false) // Display, Cursor, Blink
 
 	l.Write(0x28, RS_INSTRUCTION) // 00101000 - Set DDRAM Address
+	l.ReturnHome()
 
 	l.Clear() // clear screen
+	//init time...
+	time.Sleep(10 * time.Millisecond)
 }
 
 //ReturnHome function returns the cursor to home
@@ -119,21 +132,57 @@ func (l *LCD) Clear() {
 	l.Write(0x01, RS_INSTRUCTION)
 }
 
-//WriteLines writes the lines to the available lines on your LCD
 func (l *LCD) WriteLines(lines ...string) {
 	if len(lines) > 0 {
+		l.line1.Lock()
 		l.WriteLine(lines[0], LINE_1)
+		l.line1.Unlock()
 	}
 	if len(lines) > 1 {
+		l.line2.Lock()
 		l.WriteLine(lines[1], LINE_2)
+		l.line2.Unlock()
 	}
+}
+
+type Animation interface {
+	Content() string
+	Delay()
+	Done() bool
+}
+
+func (l *LCD) Animate(a Animation, line uint8) chan bool {
+	done := make(chan bool, 1)
+	var mut sync.Mutex
+	if line == LINE_1 {
+		mut = l.line1
+	} else {
+		mut = l.line2
+	}
+
+	mut.Lock()
+	go func() {
+		for !a.Done() {
+			s := a.Content()
+			l.WriteLine(s, line)
+			a.Delay()
+
+		}
+		mut.Unlock()
+		done <- true
+	}()
+
+	return done
 }
 
 //WriteLine function writes a single line fo text to the LCD
 //if line length exceeds the linelength of the LCD, aslice will be used
 func (l *LCD) WriteLine(s string, line uint8) {
-
+	//TODO pimvanhespen: DeHardCode this
 	s = fmt.Sprintf("%16s", s)
+
+	//TODO pimvanhespen: DeHardCode this
+	s = s[:16]
 
 	l.Write(line, RS_INSTRUCTION)
 
@@ -144,10 +193,17 @@ func (l *LCD) WriteLine(s string, line uint8) {
 
 //Write function writes data to the LCD
 func (l *LCD) Write(data uint8, mode bool) {
+	l.writelock.Lock()
+	defer l.writelock.Unlock()
+
 	if mode {
 		l.RS.High()
 	} else {
 		l.RS.Low()
+	}
+
+	for _, p := range l.DataPins {
+		p.Low()
 	}
 
 	if len(l.DataPins) == 4 {
@@ -194,10 +250,15 @@ func (l *LCD) enable(executionTime time.Duration) {
 func (l *LCD) Reset() {
 	//init sequence
 	l.Write(0x33, RS_INSTRUCTION)
+	time.Sleep(EXECUTION_TIME_DEFAULT)
 	l.Write(0x32, RS_INSTRUCTION)
+	time.Sleep(EXECUTION_TIME_DEFAULT)
 }
 
 func (l *LCD) initPins() {
+	if !rpioPrepared {
+		Open()
+	}
 	l.RS.Output()
 	l.E.Output()
 	for _, d := range l.DataPins {

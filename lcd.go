@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pimvanhespen/go-pi-lcd1602/animations"
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
@@ -145,13 +146,7 @@ func (l *LCD) WriteLines(lines ...string) {
 	}
 }
 
-type Animation interface {
-	Content() string
-	Delay()
-	Done() bool
-}
-
-func (l *LCD) Animate(a Animation, line uint8) chan bool {
+func (l *LCD) Animate(a animations.Animation, line uint8) chan bool {
 	done := make(chan bool, 1)
 	var mut sync.Mutex
 	if line == LINE_1 {
@@ -178,11 +173,10 @@ func (l *LCD) Animate(a Animation, line uint8) chan bool {
 //WriteLine function writes a single line fo text to the LCD
 //if line length exceeds the linelength of the LCD, aslice will be used
 func (l *LCD) WriteLine(s string, line uint8) {
-	//TODO pimvanhespen: DeHardCode this
-	s = fmt.Sprintf("%16s", s)
+	frmt := fmt.Sprintf("%%%ds", l.LineWidth)
+	s = fmt.Sprintf(frmt, s)
 
-	//TODO pimvanhespen: DeHardCode this
-	s = s[:16]
+	s = s[:l.LineWidth]
 
 	l.Write(line, RS_INSTRUCTION)
 

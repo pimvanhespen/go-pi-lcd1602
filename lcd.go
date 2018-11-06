@@ -222,6 +222,26 @@ func (l *LCD) Write(data uint8, mode bool) {
 	l.enable(EXECUTION_TIME_DEFAULT)
 }
 
+func (l *LCD) CreateChar(position uint8, data [8]uint8) {
+	if position > 7 {
+		//error
+		return
+	}
+	l.Write(0x40|(position<<3), false)
+	for _, x := range data {
+		l.Write(x, true)
+	}
+}
+
+//Reset resets the lcd
+func (l *LCD) Reset() {
+	//init sequence
+	l.Write(0x33, RS_INSTRUCTION)
+	time.Sleep(EXECUTION_TIME_DEFAULT)
+	l.Write(0x32, RS_INSTRUCTION)
+	time.Sleep(EXECUTION_TIME_DEFAULT)
+}
+
 //setBitToPin function sets given pin to a bit value from a given data int
 func setBitToPin(pin rpio.Pin, data, position uint8) {
 	if data&position == position {
@@ -238,15 +258,6 @@ func (l *LCD) enable(executionTime time.Duration) {
 	time.Sleep(ENABLE_DELAY)
 	l.E.Low()
 	time.Sleep(executionTime)
-}
-
-//private init instruction for LCD
-func (l *LCD) Reset() {
-	//init sequence
-	l.Write(0x33, RS_INSTRUCTION)
-	time.Sleep(EXECUTION_TIME_DEFAULT)
-	l.Write(0x32, RS_INSTRUCTION)
-	time.Sleep(EXECUTION_TIME_DEFAULT)
 }
 
 func (l *LCD) initPins() {

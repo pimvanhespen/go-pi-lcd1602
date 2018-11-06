@@ -36,6 +36,16 @@ func NewSlideInLeft(s string) Animation {
 	}
 }
 
+func NewSlideInLeftX(s string, delay time.Duration) Animation {
+	return &SlideAnimation{
+		source:  s,
+		current: -len(s),
+		max:     0,
+		fn:      slideInLeft,
+		delay:   delay,
+	}
+}
+
 func slideInLeft(s string, current int) string {
 	return stringutils.Offset(s, current)
 }
@@ -77,6 +87,16 @@ func NewSlideOutRight(s string) Animation {
 		max:     len(s),
 		fn:      slideOutRight,
 		delay:   time.Millisecond * 35,
+	}
+}
+
+func NewSlideOutRightX(s string, delay time.Duration) Animation {
+	return &SlideAnimation{
+		source:  s,
+		current: 0,
+		max:     len(s),
+		fn:      slideOutRight,
+		delay:   delay,
 	}
 }
 

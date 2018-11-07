@@ -110,12 +110,10 @@ func ShowGif(source string, theLcd *lcd.LCD) {
 		stringutils.Center("|\x00\x01\x02\x03|", 16),
 		stringutils.Center("|\x04\x05\x06\x07|", 16))
 
-	for x := 0; x < 5; x++ {
-		for idx, img := range g.Image {
-			fmt.Printf("\n\tframe %2d\n", idx)
-			sleepy := time.Duration(int64(g.Delay[idx])) * (time.Second / 100)
-			BeamToLcd(img, theLcd, sleepy)
-		}
+	for idx, img := range g.Image {
+		fmt.Printf("\n\tframe %2d\n", idx)
+		sleepy := time.Duration(int64(g.Delay[idx])) * (time.Second / 100)
+		BeamToLcd(img, theLcd, sleepy)
 	}
 
 }

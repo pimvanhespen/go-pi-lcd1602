@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	// !! WARNING! USE AT OWN RISK !!
+	// !! FLASHING THE CGRAM MIGHT NOT BE GOOD FOR YOUR LCD !!
 	lcd := lcd1602.New(
 		7,                     //rs
 		8,                     //enable

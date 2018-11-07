@@ -1,7 +1,6 @@
 package gif2lcd
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/gif"
@@ -72,7 +71,6 @@ func BeamToLcd(img *image.Paletted, theLcd *lcd.LCD, delay time.Duration) {
 
 	effect := 0.7
 
-	fmt.Println(iterations)
 	then := time.Now()
 	for x := 1; x <= iterations; x++ {
 
@@ -111,7 +109,6 @@ func ShowGif(source string, theLcd *lcd.LCD) {
 		stringutils.Center("|\x04\x05\x06\x07|", 16))
 
 	for idx, img := range g.Image {
-		fmt.Printf("\n\tframe %2d\n", idx)
 		sleepy := time.Duration(int64(g.Delay[idx])) * (time.Second / 100)
 		BeamToLcd(img, theLcd, sleepy)
 	}

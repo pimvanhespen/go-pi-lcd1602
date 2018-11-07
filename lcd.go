@@ -33,6 +33,8 @@ var (
 //global used to ensure the rpio library is nitialized befure using it.
 var rpioPrepared = false
 
+type CustomCharacter [8]uint8
+
 type LCD struct {
 	RS, E        rpio.Pin
 	DataPins     []rpio.Pin
@@ -69,14 +71,14 @@ func New(rs, e int, data []int, linewidth int) *LCD {
 		datapins = append(datapins, rpio.Pin(d))
 	}
 
-	lcd := &LCD{
+	l := &LCD{
 		RS:        rpio.Pin(rs),
 		E:         rpio.Pin(e),
 		DataPins:  datapins,
 		LineWidth: linewidth,
 	}
-	lcd.initPins()
-	return lcd
+	l.initPins()
+	return l
 }
 
 //Init initiates the LCD
@@ -222,7 +224,7 @@ func (l *LCD) Write(data uint8, mode bool) {
 	l.enable(EXECUTION_TIME_DEFAULT)
 }
 
-func (l *LCD) CreateChar(position uint8, data [8]uint8) {
+func (l *LCD) CreateChar(position uint8, data CustomCharacter) {
 	if position > 7 {
 		//error
 		return
@@ -230,6 +232,15 @@ func (l *LCD) CreateChar(position uint8, data [8]uint8) {
 	l.Write(0x40|(position<<3), false)
 	for _, x := range data {
 		l.Write(x, true)
+	}
+}
+func (l *LCD) SetCustomCharacters(characters []CustomCharacter) {
+	for index, chr := range characters {
+		offset := 8 - len(characters) + index
+		if offset < 0 {
+			continue
+		}
+		l.CreateChar(uint8(offset), chr)
 	}
 }
 

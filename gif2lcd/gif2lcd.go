@@ -34,8 +34,8 @@ func SliceToHex(colors [5]color.Color, treshold int) uint8 {
 	return result
 }
 
-func PxToChar(img *image.Paletted, xBase, yBase, treshold int) lcd.CustomCharacter {
-	result := lcd.CustomCharacter{}
+func PxToChar(img *image.Paletted, xBase, yBase, treshold int) lcd.Character {
+	result := lcd.Character{}
 	for yOffset := 0; yOffset < 8; yOffset++ {
 		result[yOffset] = SliceToHex([5]color.Color{
 			img.At(xBase+4, yBase+yOffset),
@@ -48,8 +48,8 @@ func PxToChar(img *image.Paletted, xBase, yBase, treshold int) lcd.CustomCharact
 	return result
 }
 
-func Chrmap(img *image.Paletted, treshold int) []lcd.CustomCharacter {
-	chrmap := []lcd.CustomCharacter{}
+func Chrmap(img *image.Paletted, treshold int) []lcd.Character {
+	chrmap := []lcd.Character{}
 
 	for y := 0; y < 2; y++ {
 		for x := 0; x < 4; x++ {

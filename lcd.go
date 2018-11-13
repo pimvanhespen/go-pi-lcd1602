@@ -11,12 +11,14 @@ import (
 	rpio "github.com/stianeikeland/go-rpio"
 )
 
+type LineNumber uint8
+
 const (
 	RS_DATA        = true  //sending data
 	RS_INSTRUCTION = false //sending an instruction
 
-	LINE_1 = uint8(0x80) // address for the 1st line
-	LINE_2 = uint8(0xC0) // address for the 2nd line
+	LINE_1 = LineNumber(0x80) // address for the 1st line
+	LINE_2 = LineNumber(0xC0) // address for the 2nd line
 )
 
 var (
@@ -33,14 +35,84 @@ var (
 //global used to ensure the rpio library is nitialized befure using it.
 var rpioPrepared = false
 
-type CustomCharacter [8]uint8
+type Character [8]uint8
 
 type LCD struct {
-	RS, E        rpio.Pin
-	DataPins     []rpio.Pin
-	LineWidth    int
-	writelock    sync.Mutex
+	RS, E     rpio.Pin
+	DataPins  []rpio.Pin
+	LineWidth int
+	writelock sync.Mutex
+}
+
+type LCDI_SYNC struct {
+	LCDI
 	line1, line2 sync.Mutex
+}
+
+func NewLCDISync(l LCDI) *LCDI_SYNC {
+	return &LCDI_SYNC{
+		l, sync.Mutex{}, sync.Mutex{},
+	}
+}
+func (l *LCDI_SYNC) WriteLines(lines ...string) {
+	if len(lines) > 0 {
+		l.line1.Lock()
+		l.WriteLine(lines[0], LINE_1)
+		l.line1.Unlock()
+	}
+	if len(lines) > 1 {
+		l.line2.Lock()
+		l.WriteLine(lines[1], LINE_2)
+		l.line2.Unlock()
+	}
+}
+
+func (l *LCDI_SYNC) Animate(animation animations.Animation, line LineNumber) chan bool {
+	done := make(chan bool, 1)
+	var mut sync.Mutex
+	if line == LINE_1 {
+		mut = l.line1
+	} else {
+		mut = l.line2
+	}
+
+	mut.Lock()
+	go func() {
+		for !animation.Done() {
+			s := animation.Content()
+			l.WriteLine(s, line)
+			animation.Delay()
+
+		}
+		mut.Unlock()
+		done <- true
+	}()
+
+	return done
+}
+
+type LCDI interface {
+	Initialize()
+	ReturnHome()
+	EntryModeSet(bool, bool)
+	DisplayMode(bool, bool, bool)
+	Clear()
+	Reset()
+	Write(uint8, bool)
+	WriteLine(string, LineNumber)
+	CreateChar(uint8, Character)
+	Width() int
+	Close()
+}
+
+func SetCustomCharacters(l LCDI, characters []Character) {
+	for index, chr := range characters {
+		offset := 8 - len(characters) + index
+		if offset < 0 {
+			continue
+		}
+		l.CreateChar(uint8(offset), chr)
+	}
 }
 
 //function should be called before executing any other code!
@@ -79,6 +151,10 @@ func New(rs, e int, data []int, linewidth int) *LCD {
 	}
 	l.initPins()
 	return l
+}
+func (l *LCD) Close() {}
+func (l *LCD) Width() int {
+	return l.LineWidth
 }
 
 //Init initiates the LCD
@@ -135,52 +211,15 @@ func (l *LCD) Clear() {
 	l.Write(0x01, RS_INSTRUCTION)
 }
 
-func (l *LCD) WriteLines(lines ...string) {
-	if len(lines) > 0 {
-		l.line1.Lock()
-		l.WriteLine(lines[0], LINE_1)
-		l.line1.Unlock()
-	}
-	if len(lines) > 1 {
-		l.line2.Lock()
-		l.WriteLine(lines[1], LINE_2)
-		l.line2.Unlock()
-	}
-}
-
-func (l *LCD) Animate(a animations.Animation, line uint8) chan bool {
-	done := make(chan bool, 1)
-	var mut sync.Mutex
-	if line == LINE_1 {
-		mut = l.line1
-	} else {
-		mut = l.line2
-	}
-
-	mut.Lock()
-	go func() {
-		for !a.Done() {
-			s := a.Content()
-			l.WriteLine(s, line)
-			a.Delay()
-
-		}
-		mut.Unlock()
-		done <- true
-	}()
-
-	return done
-}
-
 //WriteLine function writes a single line fo text to the LCD
 //if line length exceeds the linelength of the LCD, aslice will be used
-func (l *LCD) WriteLine(s string, line uint8) {
+func (l *LCD) WriteLine(s string, line LineNumber) {
 	frmt := fmt.Sprintf("%%%ds", l.LineWidth)
 	s = fmt.Sprintf(frmt, s)
 
 	s = s[:l.LineWidth]
 
-	l.Write(line, RS_INSTRUCTION)
+	l.Write(uint8(line), RS_INSTRUCTION)
 
 	for _, c := range s {
 		l.Write(uint8(c), RS_DATA)
@@ -224,7 +263,7 @@ func (l *LCD) Write(data uint8, mode bool) {
 	l.enable(EXECUTION_TIME_DEFAULT)
 }
 
-func (l *LCD) CreateChar(position uint8, data CustomCharacter) {
+func (l *LCD) CreateChar(position uint8, data Character) {
 	if position > 7 {
 		//error
 		return
@@ -232,15 +271,6 @@ func (l *LCD) CreateChar(position uint8, data CustomCharacter) {
 	l.Write(0x40|(position<<3), false)
 	for _, x := range data {
 		l.Write(x, true)
-	}
-}
-func (l *LCD) SetCustomCharacters(characters []CustomCharacter) {
-	for index, chr := range characters {
-		offset := 8 - len(characters) + index
-		if offset < 0 {
-			continue
-		}
-		l.CreateChar(uint8(offset), chr)
 	}
 }
 

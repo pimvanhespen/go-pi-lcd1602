@@ -32,7 +32,7 @@ func NewSlideInLeft(s string) Animation {
 		current: -len(s),
 		max:     0,
 		fn:      slideInLeft,
-		delay:   time.Millisecond * 35,
+		delay:   time.Millisecond * 20,
 	}
 }
 
@@ -56,7 +56,7 @@ func NewSlideInRight(s string) Animation {
 		current: 0,
 		max:     len(s),
 		fn:      slideInRight,
-		delay:   time.Millisecond * 35,
+		delay:   time.Millisecond * 20,
 	}
 }
 
@@ -71,7 +71,7 @@ func NewSlideOutLeft(s string) Animation {
 		current: 0,
 		max:     len(s),
 		fn:      slideOutLeft,
-		delay:   time.Millisecond * 35,
+		delay:   time.Millisecond * 20,
 	}
 }
 
@@ -86,7 +86,7 @@ func NewSlideOutRight(s string) Animation {
 		current: 0,
 		max:     len(s),
 		fn:      slideOutRight,
-		delay:   time.Millisecond * 35,
+		delay:   time.Millisecond * 20,
 	}
 }
 

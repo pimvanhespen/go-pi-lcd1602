@@ -1,18 +1,17 @@
 package terminaLCD
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 
-	tm "github.com/buger/goterm"
 	"github.com/fatih/color"
 	lcd "github.com/pimvanhespen/go-pi-lcd1602"
 )
 
 type TerminalLCD struct {
+	//path string
 	file         *os.File
 	line1, line2 string
 	lock1, lock2 sync.Mutex
@@ -27,17 +26,32 @@ func (f *TerminalLCD) Initialize() {
 
 	path := dir + "/LCD"
 
-	file, err := os.Create(path)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+
+		_, err := os.Create(path)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	file, err := os.OpenFile(path, os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		panic(err)
 	}
+
+	//f.path = path
+
 	//display command for viewing output to user
 	fmt.Println("The Terminal LCD is visible with the following command on Linux")
 	fmt.Printf("\n\ttail -f %s\n\n", path)
 	f.file = file
 
+	f.file.Seek(0, 0)
+	f.file.Truncate(0)
+	f.file.Sync()
+
 	// overwrite default output for goterm
-	tm.Output = bufio.NewWriter(f.file)
+	//	tm.Output = bufio.NewWriter(f.file)
 }
 func (f *TerminalLCD) Clear()                                   {}
 func (f *TerminalLCD) EntryModeSet(a, b bool)                   {}
@@ -48,7 +62,7 @@ func (f *TerminalLCD) Write(cmd uint8, mode bool)               {}
 func (f *TerminalLCD) CreateChar(pos uint8, char lcd.Character) {}
 func (f *TerminalLCD) ReturnHome()                              {}
 func (f *TerminalLCD) Close() {
-	f.file.Close()
+	//	f.file.Close()
 }
 
 func ReplaceCustomCharacters(s string) string {
@@ -70,14 +84,10 @@ func ReplaceCustomCharacters(s string) string {
 }
 
 func (f *TerminalLCD) Update() {
+
 	//content
 	lcdLineOne := ReplaceCustomCharacters(f.line1)
 	lcdLineTwo := ReplaceCustomCharacters(f.line2)
-
-	//fmt.Fprintf(f.output, "%s\n%s\n", lcdLineOne, lcdLineTwo)
-	//fmt.Fprintln(f.output)
-
-	tm.Clear()
 
 	//unicode points
 	ucTop, ucLeft, usRight, ucBottom := "\u2581", "\u2588", "\u2588", "\u2594"
@@ -109,17 +119,31 @@ func (f *TerminalLCD) Update() {
 	//spacing
 	marginLine := strings.Repeat(" ", 31) //ugly... I Know
 
-	tm.Println(boldwhiteblack.Sprintf("%s", marginLine))
-	tm.Println(boldwhiteblack.Sprintf("%s", marginLine))
-	tm.Println(preHeadLine)
-	tm.Println(headline)
-	tm.Println(secondLine)
-	tm.Println(thirdLine)
-	tm.Println(bottomLine)
-	tm.Println(boldwhiteblack.Sprintf("%s", marginLine))
-	tm.Println(boldwhiteblack.Sprintf("%s", marginLine))
+	result := "\033[2J\n" + strings.Join([]string{
+		boldwhiteblack.Sprintf("%s", marginLine),
+		boldwhiteblack.Sprintf("%s", marginLine),
+		preHeadLine,
+		headline,
+		secondLine,
+		thirdLine,
+		bottomLine,
+		boldwhiteblack.Sprintf("%s", marginLine),
+		boldwhiteblack.Sprintf("%s", marginLine),
+	}, "\n")
 
-	tm.Flush() // Call it every time at the end of rendering
+	ln, err := f.file.Stat()
+	if err != nil {
+		panic(err)
+	}
+
+	// ensure file does not get too large....
+	if ln.Size() > 10000 {
+		f.file.Seek(0, 0)
+		f.file.Truncate(0)
+	}
+	f.file.Write([]byte(result))
+
+	f.file.Sync()
 
 }
 

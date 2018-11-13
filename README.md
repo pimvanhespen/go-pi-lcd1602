@@ -1,4 +1,7 @@
-# Golang  LCD1602 (LCD16x2) for RaspberryPi [![GoDoc](https://godoc.org/github.com/pimvanhespen/go-pi-lcd1602?status.svg)](https://godoc.org/github.com/pimvanhespen/lcd1602)
+# Golang  LCD1602 (LCD16x2) for RaspberryPi 
+[![GoDoc](https://godoc.org/github.com/pimvanhespen/go-pi-lcd1602?status.svg)](https://godoc.org/github.com/pimvanhespen/go-pi-lcd1602)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pimvanhespen/go-pi-lcd1602)](https://goreportcard.com/report/github.com/pimvanhespen/go-pi-lcd1602)
+[![license](https://img.shields.io/github/license/pimvanhespen/go-pi-lcd1602.svg)](https://github.com/pimvanhespen/go-pi-lcd1602/blob/master/LICENSE)
 Use LCD screens in your Go RPi applications!
 
 

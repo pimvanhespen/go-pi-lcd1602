@@ -1,6 +1,7 @@
 package animations
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/pimvanhespen/go-pi-lcd1602/stringutils"
@@ -14,6 +15,12 @@ type SlideAnimation struct {
 	max     int
 }
 
+func (s *SlideAnimation) Width(width int) {
+	old := s.source
+	s.source = fmt.Sprintf(fmt.Sprintf("%%%ds", width), old)
+	s.current = (s.current / len(old)) * width
+	s.max = (s.max / len(old)) * width
+}
 func (s *SlideAnimation) Content() string {
 	s.current++
 	ret := s.fn(s.source, s.current)
@@ -26,7 +33,7 @@ func (s *SlideAnimation) Delay() {
 	time.Sleep(s.delay)
 }
 
-func NewSlideInLeft(s string) Animation {
+func SlideInLeft(s string) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: -len(s),
@@ -36,7 +43,7 @@ func NewSlideInLeft(s string) Animation {
 	}
 }
 
-func NewSlideInLeftX(s string, delay time.Duration) Animation {
+func SlideInLeftX(s string, delay time.Duration) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: -len(s),
@@ -50,7 +57,7 @@ func slideInLeft(s string, current int) string {
 	return stringutils.Offset(s, current)
 }
 
-func NewSlideInRight(s string) Animation {
+func SlideInRight(s string) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: 0,
@@ -65,7 +72,7 @@ func slideInRight(s string, current int) string {
 	return stringutils.Offset(s, offset)
 }
 
-func NewSlideOutLeft(s string) Animation {
+func SlideOutLeft(s string) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: 0,
@@ -80,7 +87,7 @@ func slideOutLeft(s string, current int) string {
 	return stringutils.Offset(s, offset)
 }
 
-func NewSlideOutRight(s string) Animation {
+func SlideOutRight(s string) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: 0,
@@ -90,7 +97,7 @@ func NewSlideOutRight(s string) Animation {
 	}
 }
 
-func NewSlideOutRightX(s string, delay time.Duration) Animation {
+func SlideOutRightX(s string, delay time.Duration) Animation {
 	return &SlideAnimation{
 		source:  s,
 		current: 0,

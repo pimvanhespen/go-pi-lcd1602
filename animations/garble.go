@@ -1,6 +1,7 @@
 package animations
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -31,13 +32,13 @@ func garblevert(s string, current, max int) string {
 	return r
 }
 
-func NewGarbleLeftSimple(s string) Animation {
+func GarbleLeftSimple(s string) Animation {
 	// hardcoded default
 	// use NewGarbleLeft for extended options
-	return NewGarbleLeft(s, 8, 10*time.Millisecond)
+	return GarbleLeft(s, 8, 10*time.Millisecond)
 }
 
-func NewGarbleLeft(s string, iters int, delay time.Duration) Animation {
+func GarbleLeft(s string, iters int, delay time.Duration) Animation {
 	return &GarbleAnimation{
 		source: s,
 		max:    iters * len(s),
@@ -46,13 +47,13 @@ func NewGarbleLeft(s string, iters int, delay time.Duration) Animation {
 	}
 }
 
-func NewGarbleRightSimple(s string) Animation {
+func GarbleRightSimple(s string) Animation {
 	// hardcoded default
 	// use NewGarbleRight for extended options
-	return NewGarbleRight(s, 8, 10*time.Millisecond)
+	return GarbleRight(s, 8, 10*time.Millisecond)
 }
 
-func NewGarbleRight(s string, iters int, delay time.Duration) Animation {
+func GarbleRight(s string, iters int, delay time.Duration) Animation {
 	return &GarbleAnimation{
 		source: s,
 		max:    iters * len(s),
@@ -67,6 +68,12 @@ type GarbleAnimation struct {
 	delay   time.Duration
 	fn      func(string, int, int) string
 	current int
+}
+
+func (g *GarbleAnimation) Width(width int) {
+	old := g.source
+	g.source = fmt.Sprintf(fmt.Sprintf("%%%ds", width), old)
+	g.max = (g.max / len(old)) * width
 }
 
 func (g *GarbleAnimation) Content() string {

@@ -7,11 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pimvanhespen/go-pi-lcd1602/animations"
 	rpio "github.com/stianeikeland/go-rpio"
 )
-
-type LineNumber uint8
 
 const (
 	RS_DATA        = true  //sending data
@@ -22,73 +19,28 @@ const (
 )
 
 var (
-	VERBOSITY = 0
-
-	ENABLE_DELAY = 1 * time.Microsecond
-
-	SLIDE_SPEED_DELAY = 10 * time.Millisecond //lower == faster
-
+	ENABLE_DELAY               = 1 * time.Microsecond
 	EXECUTION_TIME_DEFAULT     = 40 * time.Microsecond
 	EXECUTION_TIME_RETURN_HOME = 1520 * time.Microsecond
 )
 
+var lines = map[int]LineNumber{
+	1: LINE_1,
+	2: LINE_2,
+}
+
 //global used to ensure the rpio library is nitialized befure using it.
 var rpioPrepared = false
+
+type LineNumber uint8
 
 type Character [8]uint8
 
 type LCD struct {
-	RS, E     rpio.Pin
-	DataPins  []rpio.Pin
-	LineWidth int
-	writelock sync.Mutex
-}
-
-type LCDI_SYNC struct {
-	LCDI
-	line1, line2 sync.Mutex
-}
-
-func NewLCDISync(l LCDI) *LCDI_SYNC {
-	return &LCDI_SYNC{
-		l, sync.Mutex{}, sync.Mutex{},
-	}
-}
-func (l *LCDI_SYNC) WriteLines(lines ...string) {
-	if len(lines) > 0 {
-		l.line1.Lock()
-		l.WriteLine(lines[0], LINE_1)
-		l.line1.Unlock()
-	}
-	if len(lines) > 1 {
-		l.line2.Lock()
-		l.WriteLine(lines[1], LINE_2)
-		l.line2.Unlock()
-	}
-}
-
-func (l *LCDI_SYNC) Animate(animation animations.Animation, line LineNumber) chan bool {
-	done := make(chan bool, 1)
-	var mut sync.Mutex
-	if line == LINE_1 {
-		mut = l.line1
-	} else {
-		mut = l.line2
-	}
-
-	mut.Lock()
-	go func() {
-		for !animation.Done() {
-			s := animation.Content()
-			l.WriteLine(s, line)
-			animation.Delay()
-
-		}
-		mut.Unlock()
-		done <- true
-	}()
-
-	return done
+	RS, E               rpio.Pin
+	DataPins            []rpio.Pin
+	LineWidth           int
+	writelock, linelock sync.Mutex
 }
 
 type LCDI interface {
@@ -152,6 +104,7 @@ func New(rs, e int, data []int, linewidth int) *LCD {
 	l.initPins()
 	return l
 }
+
 func (l *LCD) Close() {}
 func (l *LCD) Width() int {
 	return l.LineWidth
@@ -214,6 +167,8 @@ func (l *LCD) Clear() {
 //WriteLine function writes a single line fo text to the LCD
 //if line length exceeds the linelength of the LCD, aslice will be used
 func (l *LCD) WriteLine(s string, line LineNumber) {
+	l.linelock.Lock()
+	defer l.linelock.Unlock()
 	frmt := fmt.Sprintf("%%%ds", l.LineWidth)
 	s = fmt.Sprintf(frmt, s)
 

@@ -4,11 +4,17 @@ import (
 	lcd1602 "github.com/pimvanhespen/go-pi-lcd1602"
 	"github.com/pimvanhespen/go-pi-lcd1602/animations"
 	"github.com/pimvanhespen/go-pi-lcd1602/stringutils"
+	"github.com/pimvanhespen/go-pi-lcd1602/synchronized"
+	"github.com/pimvanhespen/go-pi-lcd1602/terminaLCD"
 )
 
 func main() {
-	lcd := lcd1602.New(7, 8, []int{25, 24, 23, 18}, 16)
+	lcd := &terminaLCD.TerminalLCD{}
+	//lcd1602.New(7, 8, []int{25, 24, 23, 18}, 16)
+
 	lcd.Initialize()
+
+	lcdi := synchronized.NewSynchronizedLCD(lcd)
 
 	animations := []animations.Animation{
 		animations.NewNoAnimation(stringutils.Center("no animation", 16)),
@@ -29,7 +35,7 @@ func main() {
 			line = lcd1602.LINE_1
 		}
 		//<-lcd.Animate(animation, line) //shorter version of next 2 lines
-		wait := lcd.Animate(animation, line)
+		wait := lcdi.Animate(animation, line)
 		<-wait
 	}
 

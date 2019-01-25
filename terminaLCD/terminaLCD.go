@@ -13,11 +13,15 @@ import (
 type TerminalLCD struct {
 	//path string
 	file         *os.File
+	linewidth    int
 	line1, line2 string
 	lock1, lock2 sync.Mutex
 }
 
 func (f *TerminalLCD) Initialize() {
+
+	//TODO Pim van Hespen: move this to config
+	f.linewidth = 16
 
 	dir, err1 := os.Getwd()
 	if err1 != nil {
@@ -53,11 +57,16 @@ func (f *TerminalLCD) Initialize() {
 	// overwrite default output for goterm
 	//	tm.Output = bufio.NewWriter(f.file)
 }
-func (f *TerminalLCD) Clear()                                   {}
-func (f *TerminalLCD) EntryModeSet(a, b bool)                   {}
-func (f *TerminalLCD) DisplayMode(a, b, c bool)                 {}
-func (f *TerminalLCD) Reset()                                   {}
-func (f *TerminalLCD) Width() int                               { return 16 }
+func (f *TerminalLCD) Clear() {
+	f.WriteLine("", lcd.LINE_1)
+	f.WriteLine("", lcd.LINE_2)
+}
+func (f *TerminalLCD) EntryModeSet(a, b bool)   {}
+func (f *TerminalLCD) DisplayMode(a, b, c bool) {}
+func (f *TerminalLCD) Reset()                   {}
+func (f *TerminalLCD) Width() int {
+	return 16
+}
 func (f *TerminalLCD) Write(cmd uint8, mode bool)               {}
 func (f *TerminalLCD) CreateChar(pos uint8, char lcd.Character) {}
 func (f *TerminalLCD) ReturnHome()                              {}
@@ -85,9 +94,11 @@ func ReplaceCustomCharacters(s string) string {
 
 func (f *TerminalLCD) Update() {
 
+	frmt := fmt.Sprintf("%%%ds", f.linewidth)
+
 	//content
-	lcdLineOne := ReplaceCustomCharacters(f.line1)
-	lcdLineTwo := ReplaceCustomCharacters(f.line2)
+	lcdLineOne := fmt.Sprintf(frmt, ReplaceCustomCharacters(f.line1))
+	lcdLineTwo := fmt.Sprintf(frmt, ReplaceCustomCharacters(f.line2))
 
 	//unicode points
 	ucTop, ucLeft, usRight, ucBottom := "\u2581", "\u2588", "\u2588", "\u2594"

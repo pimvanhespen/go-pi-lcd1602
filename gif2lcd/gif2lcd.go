@@ -9,6 +9,7 @@ import (
 
 	lcd "github.com/pimvanhespen/go-pi-lcd1602"
 	"github.com/pimvanhespen/go-pi-lcd1602/stringutils"
+	"github.com/pimvanhespen/go-pi-lcd1602/synchronized"
 )
 
 /*
@@ -60,7 +61,7 @@ func Chrmap(img *image.Paletted, treshold int) []lcd.Character {
 	return chrmap
 }
 
-func BeamToLcd(img *image.Paletted, theLcd *lcd.LCD, delay time.Duration) {
+func BeamToLcd(img *image.Paletted, theLcd *synchronized.SynchronizedLCD, delay time.Duration) {
 
 	// TODO remove hard coding
 	iterations := 20 //int(delay.Nanoseconds() / (1000 * 1000))
@@ -77,7 +78,7 @@ func BeamToLcd(img *image.Paletted, theLcd *lcd.LCD, delay time.Duration) {
 		preoffset := offset + (255-offset)/(x+1)
 		treshold := int(float64(preoffset) * effect)
 
-		theLcd.SetCustomCharacters(Chrmap(img, treshold))
+		lcd.SetCustomCharacters(theLcd.LCDI, Chrmap(img, treshold))
 
 		now := time.Now()
 		elapsed := now.Sub(then)
@@ -93,7 +94,7 @@ func BeamToLcd(img *image.Paletted, theLcd *lcd.LCD, delay time.Duration) {
 //ShowGif WARNING: DO NOT USE THIS.
 //It was written merely for testing purposes
 //It may wear out your LCDs CGRAM
-func ShowGif(source string, theLcd *lcd.LCD) {
+func ShowGif(source string, theLcd *synchronized.SynchronizedLCD) {
 	input, err := os.Open(source)
 	defer input.Close()
 	if err != nil {

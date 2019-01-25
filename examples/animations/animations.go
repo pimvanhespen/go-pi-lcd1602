@@ -5,28 +5,30 @@ import (
 	"github.com/pimvanhespen/go-pi-lcd1602/animations"
 	"github.com/pimvanhespen/go-pi-lcd1602/stringutils"
 	"github.com/pimvanhespen/go-pi-lcd1602/synchronized"
-	"github.com/pimvanhespen/go-pi-lcd1602/terminaLCD"
 )
 
 func main() {
-	lcd := &terminaLCD.TerminalLCD{}
-	//lcd1602.New(7, 8, []int{25, 24, 23, 18}, 16)
+	lcd := lcd1602.New(
+		10,                   //rs
+		9,                    //enable
+		[]int{6, 13, 19, 26}, //datapins
+		16,                   //lineSize
+	)
 
 	lcd.Initialize()
 
 	lcdi := synchronized.NewSynchronizedLCD(lcd)
 
 	animations := []animations.Animation{
-		animations.NewNoAnimation(stringutils.Center("no animation", 16)),
-		animations.NewGarbleLeftSimple(stringutils.Center("garble left", 16)),
-		animations.NewGarbleRightSimple(stringutils.Center("garble right", 16)),
-		animations.NewSlideInLeft(stringutils.Center("slide in left", 16)),
-		animations.NewSlideInRight(stringutils.Center("slide in right", 16)),
-		animations.NewSlideOutLeft(stringutils.Center("slide out left", 16)),
-		animations.NewSlideOutRight(stringutils.Center("slide out right", 16)),
-		animations.NewNoAnimation(""),
-		animations.NewGarbleLeftSimple("   github.com   "),
-		animations.NewGarbleRightSimple(" /pimvanhespen  "),
+		animations.None(stringutils.Center("no animation", 16)),
+		animations.GarbleLeftSimple(stringutils.Center("garble left", 16)),
+		animations.GarbleRightSimple(stringutils.Center("garble right", 16)),
+		animations.SlideInLeft(stringutils.Center("slide in left", 16)),
+		animations.SlideInRight(stringutils.Center("slide in right", 16)),
+		animations.SlideOutLeft(stringutils.Center("slide out left", 16)),
+		animations.SlideOutRight(stringutils.Center("slide out right", 16)),
+		animations.GarbleLeftSimple("   github.com   "),
+		animations.GarbleRightSimple(" /pimvanhespen  "),
 	}
 
 	for index, animation := range animations {

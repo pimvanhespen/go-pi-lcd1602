@@ -10,10 +10,10 @@ func main() {
 	// !! WARNING! USE AT OWN RISK !!
 	// !! FLASHING THE CGRAM MIGHT NOT BE GOOD FOR YOUR LCD !!
 	lcd := lcd1602.New(
-		7,                     //rs
-		8,                     //enable
-		[]int{25, 24, 23, 18}, //datapins
-		16,                    //lineSize
+		10,                   //rs
+		9,                    //enable
+		[]int{6, 13, 19, 26}, //datapins
+		16,                   //lineSize
 	)
 	lcd.Initialize()
 

@@ -15,8 +15,16 @@ The timing in this library is optimized to run as smoot as possible.
 You can use **Animations** (see animations, and examples/animations.go) to slide text into and out of the LCD.
 You can also create your own animations by implementing the `Animation` interface.
 
+## Virtual LCD
+I wrote a virtual representation of an LCD screen. You can use it for debugging on de command line, or when your LCD is broken... 
+
 ## Changelog
-### 5 / 11 / 2018
+### 25/01/2019
+- Decoupled the lcd from synchronization
+- Added a VIRTUAL LCD
+- rewrote examples to match new code
+
+### 5/11/2018
 - Fixed boot bug: The LCD used to randomly show garbled data. It's fixed
 - Better implementation of animations. Animations are now locked to a single line, allowing for animating both lines concurrently
 - Added an example for the new animations
@@ -32,17 +40,22 @@ Also checkout the [examples](https://github.com/pimvanhespen/go-pi-lcd1602/tree/
 
 ### Short example
 ```go
-func main() {
-	//Write text to your LCD in 4 lines of code
-    lcd := lcd1602.New(
-		7,                     //rs
-		8,                     //enable
-		[]int{25, 24, 23, 18}, //datapins
-		16,                    //lineSize
-    )
+    // write code to your LCD in 5 simple steps!
+    // 1. Define the LCD config (which pins are used)
+	lcdi := lcd1602.New(
+		10,                   //rs
+		9,                    //enable
+		[]int{6, 13, 19, 26}, //datapins
+		16,                   //lineSize
+	)
+    // 2. Create a synchronized LCD (for writing both lines easily)
+	lcd := synchronized.NewSynchronizedLCD(lcdi)
+    // 3. Init the LCD
 	lcd.Initialize()
+    // 4. Write text to the LCD
 	lcd.WriteLines("Go Rpi LCD 1602", "git/PimvanHespen")
-	lcd1602.Close()
+    // 5. Close the lcd (i.e. clean up GPIO memory)
+    lcd.Close()
 }
 ```
 ## Special thanks

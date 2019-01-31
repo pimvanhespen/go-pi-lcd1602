@@ -18,18 +18,6 @@ You can also create your own animations by implementing the `Animation` interfac
 ## Virtual LCD
 I wrote a virtual representation of an LCD screen. You can use it for debugging on de command line, or when your LCD is broken... 
 
-## Changelog
-### 25/01/2019
-- Decoupled the lcd from synchronization
-- Added a VIRTUAL LCD
-- rewrote examples to match new code
-
-### 5/11/2018
-- Fixed boot bug: The LCD used to randomly show garbled data. It's fixed
-- Better implementation of animations. Animations are now locked to a single line, allowing for animating both lines concurrently
-- Added an example for the new animations
-
-
 ## Usage
 ### Import
 
@@ -58,5 +46,19 @@ Also checkout the [examples](https://github.com/pimvanhespen/go-pi-lcd1602/tree/
     lcd.Close()
 }
 ```
+## Todo
+- lanning on decoupling the LCD from the RaspberryPi GPIO. Allows for users to write/use their own IO wrappers for different hardware solutions
+
 ## Special thanks
 This library is built using [Stian Eikelands go-rpio library](https://github.com/stianeikeland/go-rpio).
+
+## Changelog
+### 25/01/2019
+- Decoupled the lcd from synchronization
+- Added a VIRTUAL LCD
+- rewrote examples to match new code
+
+### 5/11/2018
+- Fixed boot bug: The LCD used to randomly show garbled data. It's fixed
+- Better implementation of animations. Animations are now locked to a single line, allowing for animating both lines concurrently
+- Added an example for the new animations
